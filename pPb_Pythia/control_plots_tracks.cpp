@@ -1,7 +1,16 @@
 void control_plots_tracks()
 {
     TFile *f1 = new TFile("HiForest_PYTHIA_pPb.root", "READ");
+    TTree *tree_jets_3 = (TTree *)f1->Get("hiEvtAnalyzer/HiTree");
+    tree_jets_3->SetBranchStatus("*", 0);
+    tree_jets_3->SetBranchStatus("weight", 1);
+
+    Float_t weight;
+
+    tree_jets_3->SetBranchAddress("weight", &weight);
+
     TTree *tree_jets = (TTree *)f1->Get("HiGenParticleAna/hi");
+    tree_jets->AddFriend(tree_jets_3);
     tree_jets->SetBranchStatus("*", 0); // disable all branches -> to be quick
     tree_jets->SetBranchStatus("pt", 1);
     tree_jets->SetBranchStatus("eta", 1);
@@ -18,6 +27,7 @@ void control_plots_tracks()
     tree_jets->SetBranchAddress("chg", &chg);
 
     TTree *tree_jets_2 = (TTree *)f1->Get("ppTrack/trackTree");
+    tree_jets_2->AddFriend(tree_jets_3);
     tree_jets_2->SetBranchStatus("*", 0); // disable all branches -> to be quick
     tree_jets_2->SetBranchStatus("trkPt", 1);
     tree_jets_2->SetBranchStatus("trkEta", 1);
@@ -59,6 +69,10 @@ void control_plots_tracks()
     hist_trketa->Sumw2();
     TH1D *hist_trkphi = new TH1D("hist_trkphi", "TrackPhi", 100, -3.5, 3.5);
     hist_trkphi->Sumw2();
+    TH2D *hist_trketaphi = new TH2D("hist_trketaphi", "Phi and Eta for tracks", 100, -3.2, 3.2, 100, -2.5, 2.5);
+    hist_trketaphi->Sumw2();
+    TH2D *hist_gentrketaphi = new TH2D("hist_gentrketaphi", "Phi and Eta for gen tracks", 100, -3.2, 3.2, 100, -2.5, 2.5);
+    hist_gentrketaphi->Sumw2();
 
     TFile *f2 = new TFile("output_trk.root", "RECREATE");
 
@@ -75,11 +89,12 @@ void control_plots_tracks()
                 continue;
             if (pt->at(j) <= 0.4)
                 continue;
-            if (fabs(chg->at(j)) < 0.5)
+            if (fabs(chg->at(j)) == 0.0)
                 continue;
             hist_gentrkpt->Fill(pt->at(j));
             hist_gentrketa->Fill(eta->at(j));
             hist_gentrkphi->Fill(phi->at(j));
+            hist_gentrketaphi->Fill(phi->at(j), eta->at(j));
         }
     }
 
@@ -93,7 +108,7 @@ void control_plots_tracks()
                 continue;
             if (trkPt[j] <= 0.4)
                 continue;
-            if (fabs(trkCharge[j]) < 0.5)
+            if (fabs(trkCharge[j]) == 0.0)
                 continue;
             if (highPurity[j] == kFALSE)
                 continue;
@@ -106,14 +121,25 @@ void control_plots_tracks()
             hist_trkpt->Fill(trkPt[j]);
             hist_trketa->Fill(trkEta[j]);
             hist_trkphi->Fill(trkPhi[j]);
+            hist_trketaphi->Fill(trkPhi[j], trkEta[j]);
         }
     }
+    float dphi = hist_trketaphi->GetYaxis()->GetBinWidth(10);
+    float deta = hist_trketaphi->GetXaxis()->GetBinWidth(10);
+    hist_trketaphi->Scale(1. / (nentries2 * dphi * deta));
+
+    float gendphi = hist_gentrketaphi->GetYaxis()->GetBinWidth(10);
+    float gendeta = hist_gentrketaphi->GetXaxis()->GetBinWidth(10);
+    hist_gentrketaphi->Scale(1. / (nentries1 * gendphi * gendeta));
+
     hist_trkpt->Write();
     hist_trketa->Write();
     hist_trkphi->Write();
     hist_gentrkpt->Write();
     hist_gentrketa->Write();
     hist_gentrkphi->Write();
+    hist_trketaphi->Write();
+    hist_gentrketaphi->Write();
 
     f2->Write();
     f2->Close();
