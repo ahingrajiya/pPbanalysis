@@ -53,6 +53,9 @@ void control_plots()
     hist_genjetphi->Sumw2();
     TH2D *hist_jetengscale = new TH2D("hist_jetengscale", "Jet Energy Scale", 100, 0., 120., 100, 0., 5.);
     hist_jetengscale->Sumw2();
+    TH2D *hist_phieta = new TH2D("hist_phieta", "Pythia8 Jet Phi-Eta at pthat>15 GeV ", 100, -3.2, 3.2, 100, -6.0, 6.0);
+    hist_phieta->Sumw2();
+    gStyle->SetOptStat(0);
 
     vector<string> Files;
     Files.push_back("JEC_File_AK4PF_PYTHIA8_pthat15_unembedded.txt");
@@ -81,6 +84,7 @@ void control_plots()
             hist_jetphi->Fill(jtphi[j]);
             hist_jetrawpt->Fill(rawpt[j]);
             hist_corrpt->Fill(jtpt_corr);
+            hist_phieta->Fill(jtphi[j], jteta[j]);
         }
 
         for (int k = 0; k < nref; k++)
@@ -114,8 +118,10 @@ void control_plots()
     hist_genjetphi->Write();
     hist_genjetpt->Write();
     hist_jetengscale->Write();
-    gStyle->SetOptStat(0);
-    hist_jetengscale->Draw("SURF2");
+    hist_phieta->Write();
+    hist_phieta->SetXTitle("#phi");
+    hist_phieta->SetYTitle("#eta");
+    hist_phieta->Draw("COLZ");
 
     f2->Write();
     f2->Close();

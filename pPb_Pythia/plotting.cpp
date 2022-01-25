@@ -34,19 +34,21 @@ void plotting()
     legend->Draw();
 
     TCanvas *c2 = new TCanvas("c2", "c2");
+    h6->SetTitle("Track Phi-Eta for Pythia8 at pthat>15GeV");
     h6->SetXTitle("#phi");
     h6->SetYTitle("#eta");
-    h6->Draw("SURF2");
+    h6->Draw("COLZ");
 
     TCanvas *c3 = new TCanvas("c3", "c3");
     h7->SetXTitle("#phi");
     h7->SetYTitle("#eta");
-    h7->Draw("SURF2");
+    h7->Draw("COLZ");
 
     TCanvas *c4 = new TCanvas("c4", "c4");
+    h8->SetTitle("Jet Energy Scale for Pythia8 at pthat>15GeV");
     h8->SetXTitle("GenPt");
     h8->SetYTitle("RecoPt/GenPt");
-    h8->Draw("SURF2");
+    h8->Draw("COLZ");
 
     TCanvas *c5 = new TCanvas("c5", "c5");
     TH1D *h8x = h8->ProjectionX();
